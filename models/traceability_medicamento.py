@@ -5,7 +5,9 @@ class TraceabilityMedicamento(models.Model):
     _description = 'Trazabilidad de Medicamentos'
 
     product_id = fields.Many2one('product.product', string='Producto', required=True)
-    lot_id = fields.Many2one('stock.production.lot', string='Lote', required=False)
+    lot_id = fields.Many2one('stock.production.lot',string='Lote',required=False,
+    help="Lote relacionado con el producto para la trazabilidad. Puede ser asignado después de la creación.")
+
     state = fields.Selection([
         ('pendiente', 'Pendiente'),
         ('procesado', 'Procesado')
@@ -13,20 +15,37 @@ class TraceabilityMedicamento(models.Model):
     processing_date = fields.Datetime(string='Fecha de Procesamiento')
     processing_id = fields.Char(string='ID de Procesamiento')
 
+
+
+    def assign_lot(self, lot_id):
+        """Asignar un lote a la trazabilidad."""
+        for record in self:
+            if record.state == 'pendiente':
+                record.lot_id = lot_id
+            else:
+                raise Exception("No se puede asignar un lote a un registro ya procesado.")
+
     def send_product_trazability(self):
         """Enviar datos del producto al sistema externo y registrar respuesta."""
         for record in self:
             try:
-                # Simular envío de datos al sistema externo
-                response = self.env['traceability.mock'].send_data({
+                # Crear el payload para el sistema externo
+                payload = {
                     'product_id': record.product_id.id,
-                    'lot_id': record.lot_id.id,
-                })
+                }
+                if record.lot_id:  # Incluir lot_id solo si existe
+                    payload['lot_id'] = record.lot_id.id
+                
+                # Simular envío de datos al sistema externo
+                response = self.env['traceability.mock'].send_data(payload)
+                
+                # Actualizar el registro con la respuesta
                 record.processing_id = response.get('processing_id')
                 record.processing_date = fields.Datetime.now()
                 record.state = 'procesado'
             except Exception as e:
                 raise Exception(f"Error al enviar datos: {str(e)}")
+
 
     def update_product_trazability_status(self):
         """Actualizar el estado de los productos enviados."""
@@ -100,31 +119,49 @@ class TraceabilityMedicamentoViews(models.Model):
         for record in self.search([('state', '=', 'pendiente')]):
             record.send_product_trazability()
 
+class SaleOrder(models.Model):
+    _inherit = 'sale.order'
+
+    def action_confirm(self):
+        """Crear trazabilidad al confirmar la orden."""
+        res = super(SaleOrder, self).action_confirm()
+        for order in self:
+            for line in order.order_line:
+                if line.product_id.tracking != 'none':
+                    self.env['traceability.medicamento'].create({
+                        'product_id': line.product_id.id,
+                        'state': 'pendiente',
+                    })
+        return res
+class PurchaseOrder(models.Model):
+    _inherit = 'purchase.order'
+
+    def button_confirm(self):
+        """Crear trazabilidad al confirmar la orden."""
+        res = super(PurchaseOrder, self).button_confirm()
+        for order in self:
+            for line in order.order_line:
+                if line.product_id.tracking != 'none':
+                    self.env['traceability.medicamento'].create({
+                        'product_id': line.product_id.id,
+                        'state': 'pendiente',
+                    })
+        return res
+
+
 class StockPicking(models.Model):
     _inherit = 'stock.picking'
 
-    def action_open_traceability(self):
-        """Abrir trazabilidad asociada a la entrega/recepción."""
-        self.ensure_one()
-        return {
-            'type': 'ir.actions.act_window',
-            'name': 'Trazabilidad de Medicamentos',
-            'res_model': 'traceability.medicamento',
-            'view_mode': 'tree,form',
-            'domain': [('lot_id', 'in', self.move_line_ids.lot_id.ids)],
-            'context': {
-                'default_lot_id': self.move_line_ids.lot_id.id if self.move_line_ids else False,
-            },
-        }
-
     def button_validate(self):
-        """Extender la validación para iniciar la trazabilidad."""
+        """Asignar lote a la trazabilidad al validar la recepción."""
         res = super(StockPicking, self).button_validate()
         for move_line in self.move_line_ids:
             if move_line.product_id.tracking != 'none' and move_line.lot_id:
-                self.env['traceability.medicamento'].create({
-                    'product_id': move_line.product_id.id,
-                    'lot_id': move_line.lot_id.id,
-                    'state': 'pendiente',
-                })
+                trazability = self.env['traceability.medicamento'].search([
+                    ('product_id', '=', move_line.product_id.id),
+                    ('lot_id', '=', False),
+                    ('state', '=', 'pendiente'),
+                ], limit=1)
+                if trazability:
+                    trazability.assign_lot(move_line.lot_id.id)
         return res
