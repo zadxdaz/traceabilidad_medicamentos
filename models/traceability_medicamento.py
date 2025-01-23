@@ -5,7 +5,7 @@ class TraceabilityMedicamento(models.Model):
     _description = 'Trazabilidad de Medicamentos'
 
     product_id = fields.Many2one('product.product', string='Producto', required=True)
-    lot_id = fields.Many2one('stock.production.lot',string='Lote',required=False,
+    lot_id = fields.Many2one('stock.lot',string='Lote',required=False,
     help="Lote relacionado con el producto para la trazabilidad. Puede ser asignado después de la creación.")
 
     state = fields.Selection([
