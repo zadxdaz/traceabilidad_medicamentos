@@ -38,6 +38,30 @@ class TraceabilityMedicamento(models.Model):
                     record.state = response.get('status', 'pendiente')
                 except Exception as e:
                     raise Exception(f"Error al actualizar el estado: {str(e)}")
+                
+    def generate_traceability_report(self):
+        """Generar un reporte de trazabilidad en formato PDF."""
+        report_data = []
+        for record in self.search([]):
+            report_data.append({
+                'Producto': record.product_id.display_name,
+                'Lote': record.lot_id.name if record.lot_id else 'N/A',
+                'Estado': record.state,
+                'Fecha de Procesamiento': record.processing_date or 'N/A',
+                'ID de Procesamiento': record.processing_id or 'N/A',
+            })
+        return report_data
+
+    def action_export_report(self):
+        """Exportar el reporte de trazabilidad a un archivo PDF."""
+        report_data = self.generate_traceability_report()
+        # Aquí agregarías la lógica para convertir los datos a un PDF usando una librería como reportlab o wkhtmltopdf
+        # Por ahora, devolvemos los datos generados como simulación
+        return {
+            'type': 'ir.actions.act_url',
+            'url': '/web/content/traceability_medicamento/report?download=true',
+            'target': 'new',
+        }
 
 class TraceabilityLog(models.Model):
     _name = 'traceability.log'
@@ -65,4 +89,61 @@ class TraceabilityMock(models.AbstractModel):
         return {
             'processing_id': processing_id,
             'status': 'procesado'
+        }
+
+class SaleOrder(models.Model):
+    _inherit = 'sale.order'
+
+    def action_confirm(self):
+        """Extender la confirmación de ventas para sincronizar trazabilidad."""
+        res = super(SaleOrder, self).action_confirm()
+        for order in self:
+            for line in order.order_line:
+                if line.product_id.tracking != 'none':
+                    trazability = self.env['traceability.medicamento'].create({
+                        'product_id': line.product_id.id,
+                        'lot_id': line.lot_id.id if hasattr(line, 'lot_id') else None,
+                    })
+                    trazability.send_product_trazability()
+        return res
+
+class PurchaseOrder(models.Model):
+    _inherit = 'purchase.order'
+
+    def button_confirm(self):
+        """Extender la confirmación de compras para sincronizar trazabilidad."""
+        res = super(PurchaseOrder, self).button_confirm()
+        for order in self:
+            for line in order.order_line:
+                if line.product_id.tracking != 'none':
+                    trazability = self.env['traceability.medicamento'].create({
+                        'product_id': line.product_id.id,
+                        'lot_id': line.lot_id.id if hasattr(line, 'lot_id') else None,
+                    })
+                    trazability.send_product_trazability()
+        return res
+
+class TraceabilityMedicamentoViews(models.Model):
+    _inherit = 'traceability.medicamento'
+
+    def action_send_pending(self):
+        """Acción para enviar productos pendientes al sistema externo."""
+        for record in self.search([('state', '=', 'pendiente')]):
+            record.send_product_trazability()
+
+class StockPicking(models.Model):
+    _inherit = 'stock.picking'
+
+    def action_open_traceability(self):
+        """Abrir trazabilidad asociada a la entrega/recepción."""
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Trazabilidad de Medicamentos',
+            'res_model': 'traceability.medicamento',
+            'view_mode': 'tree,form',
+            'domain': [('lot_id', 'in', self.move_line_ids.lot_id.ids)],
+            'context': {
+                'default_lot_id': self.move_line_ids.lot_id.id if self.move_line_ids else False,
+            },
         }

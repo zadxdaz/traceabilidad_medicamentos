@@ -1,4 +1,17 @@
 <odoo>
+    <record id="view_traceability_medicamento_tree" model="ir.ui.view">
+        <field name="name">traceability.medicamento.tree</field>
+        <field name="model">traceability.medicamento</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="product_id"/>
+                <field name="lot_id"/>
+                <field name="state"/>
+                <field name="processing_date"/>
+                <field name="processing_id"/>
+            </tree>
+        </field>
+    </record>
     <record id="view_traceability_medicamento_form" model="ir.ui.view">
         <field name="name">traceability.medicamento.form</field>
         <field name="model">traceability.medicamento</field>
@@ -15,5 +28,33 @@
                 </sheet>
             </form>
         </field>
+    </record>
+    <record id="view_traceability_medicamento_search" model="ir.ui.view">
+        <field name="name">traceability.medicamento.search</field>
+        <field name="model">traceability.medicamento</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="state"/>
+                <filter name="state_pendiente" string="Pendiente" domain="[('state', '=', 'pendiente')]"/>
+                <filter name="state_procesado" string="Procesado" domain="[('state', '=', 'procesado')]"/>
+            </search>
+        </field>
+    </record>
+    <record id="action_send_pending" model="ir.actions.server">
+        <field name="name">Reenviar Pendientes</field>
+        <field name="model_id" ref="model_traceability_medicamento"/>
+        <field name="binding_model_id" ref="model_traceability_medicamento"/>
+        <field name="state">code</field>
+        <field name="code">
+            action = env['traceability.medicamento'].action_send_pending()
+        </field>
+    </record>
+    <menuitem id="menu_traceability_root" name="Trazabilidad" sequence="10"/>
+    <menuitem id="menu_traceability_medicamento" name="Medicamentos" parent="menu_traceability_root" sequence="10" action="action_traceability_medicamento"/>
+    <record id="action_traceability_medicamento" model="ir.actions.act_window">
+        <field name="name">Trazabilidad de Medicamentos</field>
+        <field name="res_model">traceability.medicamento</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_traceability_medicamento_search"/>
     </record>
 </odoo>
