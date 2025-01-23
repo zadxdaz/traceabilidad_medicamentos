@@ -91,36 +91,6 @@ class TraceabilityMock(models.AbstractModel):
             'status': 'procesado'
         }
 
-class SaleOrder(models.Model):
-    _inherit = 'sale.order'
-
-    def action_confirm(self):
-        """Extender la confirmación de ventas para sincronizar trazabilidad."""
-        res = super(SaleOrder, self).action_confirm()
-        for order in self:
-            for line in order.order_line:
-                if line.product_id.tracking:
-                    trazability = self.env['traceability.medicamento'].create({
-                        'product_id': line.product_id.id,
-                        'lot_id': line.lot_id.id if hasattr(line, 'lot_id') else None,
-                    })
-                    trazability.send_product_trazability()
-        return res
-
-class PurchaseOrder(models.Model):
-    _inherit = 'purchase.order'
-
-    def button_confirm(self):
-        """Extender la confirmación de compras para sincronizar trazabilidad."""
-        res = super(PurchaseOrder, self).button_confirm()
-        for order in self:
-            for line in order.order_line:
-                if line.product_id.tracking != 'none':
-                    trazability = self.env['traceability.medicamento'].create({
-                        'product_id': line.product_id.id,
-                    })
-                    trazability.send_product_trazability()
-        return res
 
 class TraceabilityMedicamentoViews(models.Model):
     _inherit = 'traceability.medicamento'
@@ -146,3 +116,15 @@ class StockPicking(models.Model):
                 'default_lot_id': self.move_line_ids.lot_id.id if self.move_line_ids else False,
             },
         }
+
+    def button_validate(self):
+        """Extender la validación para iniciar la trazabilidad."""
+        res = super(StockPicking, self).button_validate()
+        for move_line in self.move_line_ids:
+            if move_line.product_id.tracking != 'none' and move_line.lot_id:
+                self.env['traceability.medicamento'].create({
+                    'product_id': move_line.product_id.id,
+                    'lot_id': move_line.lot_id.id,
+                    'state': 'pendiente',
+                })
+        return res
