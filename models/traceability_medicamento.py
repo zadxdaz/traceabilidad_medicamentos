@@ -5,7 +5,7 @@ class TraceabilityMedicamento(models.Model):
     _description = 'Trazabilidad de Medicamentos'
 
     product_id = fields.Many2one('product.product', string='Producto', required=True)
-    lot_id = fields.Many2one('stock.production.lot', string='Lote', required=True)
+    lot_id = fields.Many2one('stock.production.lot', string='Lote', required=False)
     state = fields.Selection([
         ('pendiente', 'Pendiente'),
         ('procesado', 'Procesado')
@@ -99,7 +99,7 @@ class SaleOrder(models.Model):
         res = super(SaleOrder, self).action_confirm()
         for order in self:
             for line in order.order_line:
-                if line.product_id.tracking != 'none':
+                if line.product_id.tracking:
                     trazability = self.env['traceability.medicamento'].create({
                         'product_id': line.product_id.id,
                         'lot_id': line.lot_id.id if hasattr(line, 'lot_id') else None,
