@@ -99,7 +99,7 @@ class TraceabilityMock(models.AbstractModel):
         """Simular el envío de datos al sistema externo."""
         return {
             'processing_id': '12345',
-            'status': 'procesado'
+            'status': 'en camino'
         }
 
     @api.model
@@ -107,7 +107,7 @@ class TraceabilityMock(models.AbstractModel):
         """Simular la verificación de estado en el sistema externo."""
         return {
             'processing_id': processing_id,
-            'status': 'procesado'
+            'status': 'en camino'
         }
 
 
