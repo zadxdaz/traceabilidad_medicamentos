@@ -8,7 +8,7 @@
                     <button name="action_export_report" type="object" string="Exportar Reporte" class="btn-primary"/>
                 </header>
                 <field name="product_id"/>
-                <field name="lot_id"/>
+                <field name="lot_id" options="{'no_create': True}" placeholder="Asignar Lote"/>
                 <field name="state"/>
                 <field name="processing_date"/>
                 <field name="processing_id"/>
@@ -23,7 +23,7 @@
                 <sheet>
                     <group>
                         <field name="product_id"/>
-                        <field name="lot_id"/>
+                        <field name="lot_id" options="{'no_create': True}" placeholder="Asignar Lote"/>
                         <field name="state" readonly="1"/>
                         <field name="processing_date" readonly="1"/>
                         <field name="processing_id" readonly="1"/>
