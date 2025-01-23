@@ -1,0 +1,13 @@
+<odoo>
+    <menuitem id="menu_traceability_root" name="Trazabilidad" sequence="10"/>
+    <menuitem id="menu_traceability_medicamento" name="Medicamentos" parent="menu_traceability_root" sequence="10" action="action_traceability_medicamento"/>
+</odoo>
+
+
+<odoo>
+    <record id="action_traceability_medicamento" model="ir.actions.act_window">
+        <field name="name">Trazabilidad de Medicamentos</field>
+        <field name="res_model">traceability.medicamento</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>
