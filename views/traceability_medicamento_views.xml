@@ -2,6 +2,9 @@
     <record id="view_traceability_medicamento_tree" model="ir.ui.view">
         <field name="name">traceability.medicamento.tree</field>
         <field name="model">traceability.medicamento</field>
+        <header>
+            <button name="action_export_report" type="object" string="Exportar Reporte" class="btn-primary"/>
+        </header>
         <field name="arch" type="xml">
             <tree>
                 <field name="product_id"/>
