@@ -118,7 +118,6 @@ class PurchaseOrder(models.Model):
                 if line.product_id.tracking != 'none':
                     trazability = self.env['traceability.medicamento'].create({
                         'product_id': line.product_id.id,
-                        'lot_id': line.lot_id.id if hasattr(line, 'lot_id') else None,
                     })
                     trazability.send_product_trazability()
         return res
