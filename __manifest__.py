@@ -21,7 +21,6 @@
     ],
     'data': [
     'views/traceability_medicamento_views.xml',
-    'views/stock_picking_traceability_views.xml',
     'views/traceability_medicamento_report_views.xml',
     'views/menu_views.xml',
     'security/ir.model.access.csv',
