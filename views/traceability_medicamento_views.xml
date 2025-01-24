@@ -22,14 +22,14 @@
             <form>
                 <header>
                     <!-- Botón para consultar trazabilidad -->
-                    <button name="action_consult_trazability"
+                    <button name="send_product_trazability"
                             string="Consultar Trazabilidad"
                             type="object"
                             class="btn-primary"
                             attrs="{'invisible': [('processing_id', '!=', False)]}"/>
                     
                     <!-- Botón para actualizar trazabilidad -->
-                    <button name="action_update_trazability"
+                    <button name="update_product_trazability_status"
                             string="Actualizar Trazabilidad"
                             type="object"
                             class="btn-secondary"
