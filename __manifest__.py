@@ -23,6 +23,8 @@
     'views/traceability_medicamento_views.xml',
     'views/traceability_medicamento_report_views.xml',
     'views/menu_views.xml',
+    'config_view.xml',
+    'stock_picking.xml',
     'security/ir.model.access.csv',
     ],
     'demo': [],
