@@ -5,7 +5,6 @@
         <field name="arch" type="xml">
             <tree>
                 <header>
-                    <button name="action_export_report" type="object" string="Exportar Reporte" class="btn-primary"/>
                 </header>
                 <field name="product_id"/>
                 <field name="lot_id" options="{'no_create': True}" placeholder="Asignar Lote"/>
@@ -34,6 +33,7 @@
                             type="object"
                             class="btn-secondary"
                             attrs="{'invisible': [('processing_id', '=', False)]}"/>
+                    
                 </header>
                 <sheet>
                     <group>
@@ -75,5 +75,11 @@
         <field name="view_mode">tree,form</field>
         <field name="search_view_id" ref="view_traceability_medicamento_search"/>
     </record>
-    
+       <record id="action_report_traceability_summary" model="ir.actions.report">
+        <field name="name">Reporte Resumen Trazabilidad</field>
+        <field name="model">traceability.medicamento</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">traceability_medicamento.report_traceability_summary</field>
+    </record>
+
 </odoo>

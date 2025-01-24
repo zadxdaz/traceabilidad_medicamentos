@@ -1,0 +1,35 @@
+<odoo>
+    <template id="report_traceability_summary">
+        <t t-name="traceability_medicamento.report_traceability_summary">
+            <t t-set="date" t-value="time.strftime('%Y-%m-%d %H:%M:%S')"/>
+            <main>
+                <div class="page">
+                    <h2 style="text-align: center;">Reporte de Trazabilidad de Medicamentos</h2>
+                    <p><strong>Fecha de Generación:</strong> <t t-esc="date"/></p>
+                    <table class="table table-bordered" style="width: 100%; text-align: left; margin-top: 20px;">
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th>Lote</th>
+                                <th>Estado</th>
+                                <th>Fecha de Procesamiento</th>
+                                <th>ID de Procesamiento</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="docs" t-as="doc">
+                                <tr>
+                                    <td><t t-esc="doc.product_id.display_name"/></td>
+                                    <td><t t-esc="doc.lot_id.name or 'No asignado'"/></td>
+                                    <td><t t-esc="dict(doc._fields['state'].selection).get(doc.state)"/></td>
+                                    <td><t t-esc="doc.processing_date or 'Pendiente'"/></td>
+                                    <td><t t-esc="doc.processing_id or 'Pendiente'"/></td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                </div>
+            </main>
+        </t>
+    </template>
+</odoo>

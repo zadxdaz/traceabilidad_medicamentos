@@ -21,7 +21,9 @@
     ],
     'data': [
     'views/traceability_medicamento_views.xml',
-    'views/traceability_medicamento_report_views.xml',
+    'data/report_traceability_summary.xml',
+    'views/traceability_medicamento_summary_report_templates.xml',
+    'data/report_traceability_medicamento.xml',
     'views/menu_views.xml',
     'views/config_view.xml',
     'views/stock_picking.xml',
