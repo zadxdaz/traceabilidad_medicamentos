@@ -28,23 +28,22 @@ class TraceabilityMedicamento(models.Model):
     def send_product_trazability(self):
         """Enviar datos del producto al sistema externo y registrar respuesta."""
         for record in self:
+            if not record.lot_id:
+                raise Exception(f"El registro de trazabilidad para el producto {record.product_id.name} no tiene un lote asignado.")
+            
             try:
-                # Crear el payload para el sistema externo
-                payload = {
-                    'product_id': record.product_id.id,
-                }
-                if record.lot_id:  # Incluir lot_id solo si existe
-                    payload['lot_id'] = record.lot_id.id
-                
                 # Simular envío de datos al sistema externo
-                response = self.env['traceability.mock'].send_data(payload)
-                
-                # Actualizar el registro con la respuesta
+                response = self.env['traceability.mock'].send_data({
+                    'product_id': record.product_id.id,
+                    'lot_id': record.lot_id.id,
+                })
+                # Actualizar los campos con la respuesta del sistema externo
                 record.processing_id = response.get('processing_id')
                 record.processing_date = fields.Datetime.now()
                 record.state = 'procesado'
             except Exception as e:
                 raise Exception(f"Error al enviar datos: {str(e)}")
+
 
 
     def update_product_trazability_status(self):
