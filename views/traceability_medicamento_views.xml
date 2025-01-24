@@ -75,4 +75,5 @@
         <field name="view_mode">tree,form</field>
         <field name="search_view_id" ref="view_traceability_medicamento_search"/>
     </record>
+    
 </odoo>
