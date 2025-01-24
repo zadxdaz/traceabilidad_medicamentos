@@ -1,1 +1,1 @@
-from . import TraceabilityMedicamento,ApiMock,PurchaseOrder,SaleOrder,StockPicking,TraceabilityLog
+from . import TraceabilityMedicamento,ApiMock,PurchaseOrder,SaleOrder,StockPicking,TraceabilityLog,TraceabilityConfigSettings
