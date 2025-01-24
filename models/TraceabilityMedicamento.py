@@ -29,20 +29,39 @@ class TraceabilityMedicamento(models.Model):
         """Enviar datos del producto al sistema externo y registrar respuesta."""
         for record in self:
             if not record.lot_id:
-                raise Exception(f"El registro de trazabilidad para el producto {record.product_id.name} no tiene un lote asignado.")
-            
+                raise Exception("Debe asignar un lote antes de consultar la trazabilidad.")
+
+            # Obtener configuración
+            api_url = self.env['ir.config_parameter'].sudo().get_param('traceability_medicamento.api_url', 'https://api.external-system.com')
+            use_mock = self.env['ir.config_parameter'].sudo().get_param('traceability_medicamento.use_mock_api', 'True') == 'True'
+
             try:
-                # Simular envío de datos al sistema externo
-                response = self.env['traceability.api.mock'].send_data({
-                    'product_id': record.product_id.id,
-                    'lot_id': record.lot_id.id,
-                })
-                # Actualizar los campos con la respuesta del sistema externo
+                if use_mock:
+                    # Usar la Mock API integrada
+                    response = self.env['traceability.mock'].check_status(record.lot_id.id)
+                else:
+                    # Lógica para interactuar con la API externa
+                    # Aquí usarías la librería requests o cualquier otra para hacer la llamada
+                    response = self._call_external_api(api_url, {
+                        'product_id': record.product_id.id,
+                        'lot_id': record.lot_id.id,
+                    })
+                
+                # Actualizar campos
                 record.processing_id = response.get('processing_id')
+                record.state = response.get('status', 'pendiente')
                 record.processing_date = fields.Datetime.now()
-                record.state = 'procesado'
             except Exception as e:
                 raise Exception(f"Error al enviar datos: {str(e)}")
+
+    def _call_external_api(self, api_url, payload):
+        """TODO :implementar la funcionalidad para llamar a una API Externa"""
+
+        return {
+            'processing_id': '123456',
+            'status': 'procesado'
+        }
+
 
 
 
