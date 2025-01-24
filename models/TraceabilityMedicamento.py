@@ -33,7 +33,7 @@ class TraceabilityMedicamento(models.Model):
             
             try:
                 # Simular envío de datos al sistema externo
-                response = self.env['traceability.mock'].send_data({
+                response = self.env['traceability.api.mock'].send_data({
                     'product_id': record.product_id.id,
                     'lot_id': record.lot_id.id,
                 })
@@ -52,7 +52,7 @@ class TraceabilityMedicamento(models.Model):
             if record.processing_id:
                 try:
                     # Simular consulta al sistema externo
-                    response = self.env['traceability.mock'].check_status(record.processing_id)
+                    response = self.env['traceability.api.mock'].check_status(record.processing_id)
                     record.state = response.get('status', 'pendiente')
                 except Exception as e:
                     raise Exception(f"Error al actualizar el estado: {str(e)}")
@@ -81,35 +81,6 @@ class TraceabilityMedicamento(models.Model):
             'target': 'new',
         }
 
-class TraceabilityLog(models.Model):
-    _name = 'traceability.log'
-    _description = 'Historial de Envíos de Trazabilidad'
-
-    product_id = fields.Many2one('product.product', string='Producto', required=True)
-    send_date = fields.Datetime(string='Fecha de Envío', default=fields.Datetime.now)
-    response = fields.Text(string='Respuesta del Sistema Externo')
-
-class TraceabilityMock(models.AbstractModel):
-    """Mock del sistema externo para trazabilidad."""
-    _name = 'traceability.mock'
-
-    @api.model
-    def send_data(self, data):
-        """Simular el envío de datos al sistema externo."""
-        return {
-            'processing_id': '12345',
-            'status': 'en camino'
-        }
-
-    @api.model
-    def check_status(self, processing_id):
-        """Simular la verificación de estado en el sistema externo."""
-        return {
-            'processing_id': processing_id,
-            'status': 'en camino'
-        }
-
-
 class TraceabilityMedicamentoViews(models.Model):
     _inherit = 'traceability.medicamento'
 
@@ -118,49 +89,4 @@ class TraceabilityMedicamentoViews(models.Model):
         for record in self.search([('state', '=', 'pendiente')]):
             record.send_product_trazability()
 
-class SaleOrder(models.Model):
-    _inherit = 'sale.order'
 
-    def action_confirm(self):
-        """Crear trazabilidad al confirmar la orden."""
-        res = super(SaleOrder, self).action_confirm()
-        for order in self:
-            for line in order.order_line:
-                if line.product_id.tracking != 'none':
-                    self.env['traceability.medicamento'].create({
-                        'product_id': line.product_id.id,
-                        'state': 'pendiente',
-                    })
-        return res
-class PurchaseOrder(models.Model):
-    _inherit = 'purchase.order'
-
-    def button_confirm(self):
-        """Crear trazabilidad al confirmar la orden."""
-        res = super(PurchaseOrder, self).button_confirm()
-        for order in self:
-            for line in order.order_line:
-                if line.product_id.tracking != 'none':
-                    self.env['traceability.medicamento'].create({
-                        'product_id': line.product_id.id,
-                        'state': 'pendiente',
-                    })
-        return res
-
-
-class StockPicking(models.Model):
-    _inherit = 'stock.picking'
-
-    def button_validate(self):
-        """Asignar lote a la trazabilidad al validar la recepción."""
-        res = super(StockPicking, self).button_validate()
-        for move_line in self.move_line_ids:
-            if move_line.product_id.tracking != 'none' and move_line.lot_id:
-                trazability = self.env['traceability.medicamento'].search([
-                    ('product_id', '=', move_line.product_id.id),
-                    ('lot_id', '=', False),
-                    ('state', '=', 'pendiente'),
-                ], limit=1)
-                if trazability:
-                    trazability.assign_lot(move_line.lot_id.id)
-        return res
