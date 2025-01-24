@@ -13,4 +13,11 @@
             </header>
         </field>
     </record>
+    <record id="action_traceability_medicamento" model="ir.actions.act_window">
+    <field name="name">Trazabilidad de Medicamentos</field>
+    <field name="res_model">traceability.medicamento</field>
+    <field name="view_mode">tree,form</field>
+    <field name="context">{}</field>
+    </record>
+
 </odoo>
