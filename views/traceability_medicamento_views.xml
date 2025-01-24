@@ -20,6 +20,21 @@
         <field name="model">traceability.medicamento</field>
         <field name="arch" type="xml">
             <form>
+                <header>
+                    <!-- Botón para consultar trazabilidad -->
+                    <button name="action_consult_trazability"
+                            string="Consultar Trazabilidad"
+                            type="object"
+                            class="btn-primary"
+                            attrs="{'invisible': [('processing_id', '!=', False)]}"/>
+                    
+                    <!-- Botón para actualizar trazabilidad -->
+                    <button name="action_update_trazability"
+                            string="Actualizar Trazabilidad"
+                            type="object"
+                            class="btn-secondary"
+                            attrs="{'invisible': [('processing_id', '=', False)]}"/>
+                </header>
                 <sheet>
                     <group>
                         <field name="product_id"/>
