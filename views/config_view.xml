@@ -1,10 +1,4 @@
 <odoo>
-    <menuitem id="menu_traceability_settings" 
-              name="Configuración de Trazabilidad" 
-              parent="base.menu_config" 
-              action="action_traceability_config_settings"
-              sequence="10" />
-
     <record id="action_traceability_config_settings" model="ir.actions.act_window">
         <field name="name">Configuración de Trazabilidad</field>
         <field name="res_model">res.config.settings</field>
@@ -12,4 +6,9 @@
         <field name="target">inline</field>
         <field name="context">{'module': 'traceability_medicamento'}</field>
     </record>
+    <menuitem id="menu_traceability_settings" 
+              name="Configuración de Trazabilidad" 
+              parent="base.menu_config" 
+              action="action_traceability_config_settings"
+              sequence="10" />
 </odoo>
