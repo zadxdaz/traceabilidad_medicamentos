@@ -16,7 +16,6 @@ class TraceabilityMedicamento(models.Model):
     processing_id = fields.Char(string='ID de Procesamiento')
 
 
-
     def assign_lot(self, lot_id):
         """Asignar un lote a la trazabilidad."""
         for record in self:
@@ -41,7 +40,6 @@ class TraceabilityMedicamento(models.Model):
                     response = self.env['traceability.mock'].check_status(record.lot_id.id)
                 else:
                     # Lógica para interactuar con la API externa
-                    # Aquí usarías la librería requests o cualquier otra para hacer la llamada
                     response = self._call_external_api(api_url, {
                         'product_id': record.product_id.id,
                         'lot_id': record.lot_id.id,
